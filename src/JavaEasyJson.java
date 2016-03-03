@@ -62,7 +62,71 @@ public class JavaEasyJson {
 					}
 				}
 				temp += "\"";
-				temp += str;
+				String escapedstr=new String();
+				int pos = 0;
+				while (pos!=str.length())
+				{
+					if (str.charAt(pos) == JsonDoubleQuote)
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += JsonDoubleQuote;
+						pos++;
+						continue;
+					}
+					else if(str.charAt(pos)  == '\b')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += 'b';
+						pos++;
+						continue;
+					}
+					else if (str.charAt(pos) == '\r')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += 'r';
+						pos++;
+						continue;
+					}
+					else if (str.charAt(pos)  == '\f')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += 'f';
+						pos++;
+						continue;
+					}
+					else if (str.charAt(pos)  == '\t')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += 't';
+						pos++;
+						continue;
+					}
+					else if (str.charAt(pos)  == '\n')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += 'n';
+						pos++;
+						continue;
+					}
+					else if (str.charAt(pos)  == '\\')
+					{
+						escapedstr += JsonEscapeCharacter;
+						escapedstr += '\\';
+						pos++;
+						continue;
+					}			
+					else if (str.charAt(pos)  > 0 && str.charAt(pos)  <= 0x1F)
+					{
+						String buffer=new String();
+						buffer= String.format("\\u%04X", (int)str.charAt(pos));
+						escapedstr += buffer;
+						pos++;
+						continue;
+					}
+					escapedstr +=str.charAt(pos);
+					pos++;
+				}
+				temp += escapedstr;
 				temp += "\"";
 			}
 			else if (type == JavaEasyJson.JsonValueType.VALUE_OBJECT)

@@ -14,6 +14,12 @@ public class EasyJsonTest {
 		JavaEasyJson.JsonNode jsonnode =  ejson.new JsonNode();
 		jsonnode=ejson.GetRoot();
 		ejson.AppendValue(jsonnode, "english", "jsonstr");
+		ejson.AppendValue(jsonnode, "escapedstring", "str\r\b\t\n\f\\");
+		
+		String temp=new String();
+		temp += (char)(0x1F);
+		temp += (char)(0x11);
+		ejson.AppendValue(jsonnode, "controlstring", temp);
 		
 		System.out.print(ejson.ToString());
 		
