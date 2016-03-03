@@ -138,12 +138,15 @@ public class JavaEasyJson {
 			{
 				temp += "[";
 			}
-			for (int i = 0; i < values.size(); i++)
+			if(values.size()>0)
 			{
-				temp += values.elementAt(i).ToString();
-				temp += ",";
+				for (int i = 0; i < values.size(); i++)
+				{
+					temp += values.elementAt(i).ToString();
+					temp += ",";
+				}
+				temp = temp.substring(0, temp.length() - 1);
 			}
-			temp = temp.substring(0, temp.length() - 1);
 			if (type == JavaEasyJson.JsonNodeType.NODE_OBJECT)
 			{
 				temp += "}";
