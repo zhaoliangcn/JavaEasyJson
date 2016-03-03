@@ -171,22 +171,22 @@ public class JavaEasyJson {
 			JsonNode root =new JsonNode();
 			//json = AToU(jsonstring);
 			json=jsonstring;
-			currnetpos = 0;
-			while (currnetpos<json.length())
+			currentpos = 0;
+			while (currentpos<json.length())
 			{
-				if (json.charAt(currnetpos) == JsonLeftBrace)
+				if (json.charAt(currentpos) == JsonLeftBrace)
 				{
-					currnetpos++;
+					currentpos++;
 					root = BulidJsonNode(null, JavaEasyJson.JsonNodeType.NODE_OBJECT);
 					break;
 				}
-				else if(json.charAt(currnetpos)  == JsonLeftBracket)
+				else if(json.charAt(currentpos)  == JsonLeftBracket)
 				{
-					currnetpos++;
+					currentpos++;
 					root = BulidJsonNode(null, JavaEasyJson.JsonNodeType.NODE_ARRAY);					
 					break;
 				}
-				currnetpos++;
+				currentpos++;
 			}
 			return root;
 		}
@@ -196,7 +196,7 @@ public class JavaEasyJson {
 			int JsonDoubleQuoteMeet = 0;
 			JsonValue value=new JsonValue();
 			String token = currenttoken;
-			while (currnetpos<json.length())
+			while (currentpos<json.length())
 			{
 				if (TokenIsComment(token))
 				{
@@ -222,13 +222,13 @@ public class JavaEasyJson {
 				else if (token.equals("}"))
 				{
 					//返回，交给上层处理
-					currnetpos--;
+					currentpos--;
 					break;
 				}
 				else if (token.equals("]") )
 				{
 					//返回，交给上层处理
-					currnetpos--;
+					currentpos--;
 					break;
 				}
 				else if (token.equals("\"") )
@@ -236,7 +236,8 @@ public class JavaEasyJson {
 					JsonDoubleQuoteMeet++;
 					if (value.name!=null)
 						value.type = JavaEasyJson.JsonValueType.VALUE_STRING;		
-					if(JsonDoubleQuoteMeet%2==0)
+					if((JsonDoubleQuoteMeet&0x01)==0) //should be faster
+					//if(JsonDoubleQuoteMeet%2==0)
 						token = GetNextToken(false);
 					else
 						token = GetNextToken(true);
@@ -264,9 +265,9 @@ public class JavaEasyJson {
 					}
 					value.type = JavaEasyJson.JsonValueType.VALUE_NULL;
 					token =GetNextToken(false);
-					if (currnetpos== json.length())
+					if (currentpos== json.length())
 					{
-						currnetpos--;
+						currentpos--;
 					}
 				}
 				else if (token.equals(",") )
@@ -282,9 +283,9 @@ public class JavaEasyJson {
 					else if (value.str==null)
 					{				
 						AssignStringToJsonValue(value, token);
-						if (json.charAt(currnetpos) == '"')
+						if (json.charAt(currentpos) == '"')
 						{
-							currnetpos++;
+							currentpos++;
 						}
 						break;
 					}
@@ -304,7 +305,7 @@ public class JavaEasyJson {
 			JsonNode node= new JsonNode();
 			node.type = nodetype;
 			String token =GetNextToken(false);	
-			while (currnetpos != json.length())
+			while (currentpos != json.length())
 			{
 				if (TokenIsComment(token))
 				{
@@ -360,40 +361,41 @@ public class JavaEasyJson {
 		}
 		void GoCommentEnd(String commentstyle)
 		{
-			if (commentstyle.equals("//"))                            //cpp style
-			{
-				while (currnetpos < json.length())
+			if (commentstyle.equals("//") ||                            //cpp style
+				commentstyle.equals("#"))                                   //yaml style
+					{
+				while (currentpos < json.length())
 				{
-					if (json.charAt(currnetpos) == '\n')							 //unix style
+					if (json.charAt(currentpos) == '\n')							 //unix style
 					{
-						currnetpos++;
+						currentpos++;
 						break;
 					}
-					else if (json.charAt(currnetpos)  == '\r' && json.charAt(currnetpos+1) =='\n')       //windows style
+					else if (json.charAt(currentpos)  == '\r' && json.charAt(currentpos+1) =='\n')       //windows style
 					{
-						currnetpos++; currnetpos++;
+						currentpos++; currentpos++;
 						break;
 					}
-					currnetpos++;
+					currentpos++;
 				}
 			}
 			else if (commentstyle.equals("/*"))                      //c style
 			{
-				while (currnetpos < json.length())
+				while (currentpos < json.length())
 				{
-					if (json.charAt(currnetpos)  == '*' && json.charAt(currnetpos+1) == '/')
+					if (json.charAt(currentpos)  == '*' && json.charAt(currentpos+1) == '/')
 					{
-						currnetpos++; currnetpos++;
+						currentpos++; currentpos++;
 						break;
 					}
-					currnetpos++;
+					currentpos++;
 				}
 			}
 		}
 		boolean TokenIsComment(String token)
 		{
 			boolean bret = false;
-			if (token.equals("//" )|| token.equals( "/*" )|| token.equals("*/") )
+			if (token.equals("//" )|| token.equals( "/*" )|| token.equals("*/") ||token.equals("#"))
 			{
 				bret = true;
 			}	
@@ -405,37 +407,37 @@ public class JavaEasyJson {
 			String token = new String();			
 			if(tonextJsonDoubleQuote)
 			{
-				if (json.charAt(currnetpos)== JsonDoubleQuote)
-					currnetpos++;
-				while (currnetpos < json.length())
+				if (json.charAt(currentpos)== JsonDoubleQuote)
+					currentpos++;
+				while (currentpos < json.length())
 				{
-					if (json.charAt(currnetpos)== JsonEscapeCharacter)
+					if (json.charAt(currentpos)== JsonEscapeCharacter)
 					{
-						if (currnetpos+1 != json.length())
+						if (currentpos+1 != json.length())
 						{
-							if (json.charAt(currnetpos+1) == JsonDoubleQuote)
+							if (json.charAt(currentpos+1) == JsonDoubleQuote)
 							{
 								token += JsonDoubleQuote;
-								currnetpos++;
-								currnetpos++;
+								currentpos++;
+								currentpos++;
 							}
 							else
 							{
-								token += json.charAt(currnetpos);
-								currnetpos++;
+								token += json.charAt(currentpos);
+								currentpos++;
 							}
 						}
 					}
 					else
 					{
-						if (json.charAt(currnetpos)==JsonDoubleQuote )
+						if (json.charAt(currentpos)==JsonDoubleQuote )
 						{
 							break;
 						}				
 						else
 						{
-							token += json.charAt(currnetpos);
-							currnetpos++;
+							token += json.charAt(currentpos);
+							currentpos++;
 						}				
 					}
 					
@@ -445,21 +447,22 @@ public class JavaEasyJson {
 			}
 			else
 			{
-				while (currnetpos < json.length())
+				while (currentpos < json.length())
 				{
-					if (json.charAt(currnetpos) == JsonDoubleQuote ||
-						json.charAt(currnetpos) == JsonRightBrace ||
-						json.charAt(currnetpos) == JsonLeftBrace ||
-						json.charAt(currnetpos)== JsonLeftBracket ||
-						json.charAt(currnetpos) == JsonRightBracket ||
-						json.charAt(currnetpos) == JsonColon ||
-						json.charAt(currnetpos) == JsonComma)
+					if (json.charAt(currentpos) == JsonDoubleQuote ||
+						json.charAt(currentpos) == JsonRightBrace ||
+						json.charAt(currentpos) == JsonLeftBrace ||
+						json.charAt(currentpos)== JsonLeftBracket ||
+						json.charAt(currentpos) == JsonRightBracket ||
+						json.charAt(currentpos) == JsonColon ||
+						json.charAt(currentpos) == JsonComma ||
+						json.charAt(currentpos) == JsonHash)  //yaml comment
 					{
 						if (token.isEmpty())
 						{
 							token="";
-							token += json.charAt(currnetpos);
-							currnetpos++;
+							token += json.charAt(currentpos);
+							currentpos++;
 							break;
 						}
 						else
@@ -468,93 +471,100 @@ public class JavaEasyJson {
 							break;
 						}
 					}
-					else if (json.charAt(currnetpos) == JsonSlash)
+					else if (json.charAt(currentpos) == JsonSlash)
 					{
 						//possible is comment
-						if (((currnetpos + 1) != json.length()) && (json.charAt(currnetpos+1) == JsonSlash))
+						if (((currentpos + 1) != json.length()) && (json.charAt(currentpos+1) == JsonSlash))
 						{
 							token = "//";
-							currnetpos++; currnetpos++;
+							currentpos++; currentpos++;
 							break;
 						}
-						else if (((currnetpos + 1) != json.length()) && (json.charAt(currnetpos+1) == JsonStar))
+						else if (((currentpos + 1) != json.length()) && (json.charAt(currentpos+1) == JsonStar))
 						{
 							token = "/*";
-							currnetpos++; currnetpos++;
+							currentpos++; currentpos++;
 							break;
 						}
 						else
 						{
-							token += json.charAt(currnetpos);
+							token += json.charAt(currentpos);
 						}
 					}
-					else if (json.charAt(currnetpos) == JsonEscapeCharacter)
+					else if (json.charAt(currentpos) == JsonEscapeCharacter)
 					{
 						if (!token.isEmpty())
 						{
-							if (json.charAt(currnetpos+1) == JsonDoubleQuote)
+							if (json.charAt(currentpos+1) == JsonDoubleQuote)
 							{
 								token += JsonDoubleQuote;
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 'b')
+							else if (json.charAt(currentpos+1) == 'b')
 							{
 								token += '\b';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 'f')
+							else if (json.charAt(currentpos+1) == 'f')
 							{
 								token += '\f';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 't')
+							else if (json.charAt(currentpos+1) == 't')
 							{
 								token += '\t';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 'n')
+							else if (json.charAt(currentpos+1) == 'n')
 							{
 								token += '\n';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 'r')
+							else if (json.charAt(currentpos+1) == 'r')
 							{
 								token += '\r';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1)== '\\')
+							else if (json.charAt(currentpos+1)== '\\')
 							{
 								token += '\\';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == '/')
+							else if (json.charAt(currentpos+1) == '/')
 							{
 								token += '/';
-								currnetpos++;
+								currentpos++;
 							}
-							else if (json.charAt(currnetpos+1) == 'u')
+							else if (json.charAt(currentpos+1) == 'u')
 							{
-								token +=json.charAt(currnetpos);
+								token +=json.charAt(currentpos);
 							}
 							else
 							{
-								token += json.charAt(currnetpos);
+								token += json.charAt(currentpos);
 							}
 						}
 					}
-					else  if (json.charAt(currnetpos)== ' ' ||
-							json.charAt(currnetpos) == '\t' ||
-							json.charAt(currnetpos)== '\n' ||
-							json.charAt(currnetpos)== '\r'
+					else  if (json.charAt(currentpos)== ' ' ||
+							json.charAt(currentpos) == '\t' ||
+							json.charAt(currentpos)== '\n' ||
+							json.charAt(currentpos)== '\r'
 						)
 					{
-						;
+						if (!token.isEmpty())
+						{
+							break;
+						}
+						else
+						{
+							;
+						}
 					}
 					else
 					{
-						token +=json.charAt(currnetpos);
+						token +=json.charAt(currentpos);
 					}
-					currnetpos++;
+					currentpos++;
 				}
 			}
 			
@@ -603,7 +613,7 @@ public class JavaEasyJson {
 		String json;
 		String currenttoken;
 		String prevtoken;
-		int currnetpos;
+		int currentpos;
 	};
 
 		boolean ParseString(String jsonstring)

@@ -8,7 +8,8 @@ public class EasyJsonTest {
 		System.out.print(json);
 		
 		JavaEasyJson ejson= new JavaEasyJson();
-		ejson.ParseString("{\"abc\":1234}");	
+		ejson.ParseString("{\"abc\":#whit yaml comment \r\n1234}");
+		System.out.print(ejson.ToString());		
 		ejson.ParseString("{\"chinese\":\"ÖÐÎÄ\"}");
 		JavaEasyJson.JsonNode jsonnode =  ejson.new JsonNode();
 		jsonnode=ejson.GetRoot();
